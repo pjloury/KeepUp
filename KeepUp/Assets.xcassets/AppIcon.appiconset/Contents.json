@@ -1,6 +1,7 @@
 {
   "images" : [
     {
+      "filename" : "22DALL·E 2024-11-28 11.33.31 - A square iOS app icon featuring the words 'KEEP UP!' in a fun, creative, colorful bubble font. The text is bold, playful, and three-dimensional, with .png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -58,11 +59,13 @@
       "size" : "128x128"
     },
     {
+      "filename" : "22DALL·E 2024-11-28 11.33.31 - A square iOS app icon featuring the words 'KEEP UP!' in a fun, creative, colorful bubble font. The text is bold, playful, and three-dimensional, with  3.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "256x256"
     },
     {
+      "filename" : "22DALL·E 2024-11-28 11.33.31 - A square iOS app icon featuring the words 'KEEP UP!' in a fun, creative, colorful bubble font. The text is bold, playful, and three-dimensional, with  2.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "256x256"
@@ -73,6 +76,7 @@
       "size" : "512x512"
     },
     {
+      "filename" : "22DALL·E 2024-11-28 11.33.31 - A square iOS app icon featuring the words 'KEEP UP!' in a fun, creative, colorful bubble font. The text is bold, playful, and three-dimensional, with  1.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "512x512"

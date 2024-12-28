@@ -1,0 +1,21 @@
+{
+  "images" : [
+    {
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "Crop22DALL·E 2024-11-28 11.33.31 - A square iOS app icon featuring the words 'KEEP UP!' in a fun, creative, colorful bubble font. The text is bold, playful, and three-dimensional, with  copy.png",
+      "idiom" : "universal",
+      "scale" : "2x"
+    },
+    {
+      "idiom" : "universal",
+      "scale" : "3x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

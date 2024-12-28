@@ -1,17 +1,25 @@
-//
-//  KeepUpApp.swift
-//  KeepUp
-//
-//  Created by PJ Loury on 11/28/24.
-//
-
+// KeepUpApp.swift
 import SwiftUI
 
 @main
 struct KeepUpApp: App {
+    @State private var isShowingLaunchScreen = true
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            if isShowingLaunchScreen {
+                LaunchScreenView()
+                    .onAppear {
+                        // Dismiss launch screen after a delay
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            withAnimation {
+                                isShowingLaunchScreen = false
+                            }
+                        }
+                    }
+            } else {
+                ContentView()
+            }
         }
     }
 }
