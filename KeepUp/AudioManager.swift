@@ -4,6 +4,7 @@ class AudioManager {
     static let shared = AudioManager()
     private var backgroundMusicPlayer: AVAudioPlayer?
     private var gameOverPlayer: AVAudioPlayer?
+    private var directionPlayers: [String: AVAudioPlayer] = [:]
     
     // Pool of audio players for boop sound
     private var boopPlayers: [AVAudioPlayer] = []
@@ -28,6 +29,7 @@ class AudioManager {
         setupBoopSoundPool()
         setupGameOverSound()
         setupBackgroundMusic()
+        setupDirectionSounds()
     }
     
     private func setupBoopSoundPool() {
@@ -81,6 +83,27 @@ class AudioManager {
         }
     }
     
+    private func setupDirectionSounds() {
+        let directions = ["swipe-up", "swipe-down", "swipe-left", "swipe-right", 
+                         "single-tap", "double-tap", "zoom-in", "zoom-out"]
+        
+        for direction in directions {
+            guard let path = Bundle.main.path(forResource: direction, ofType: "mp3") else {
+                print("\(direction) sound file not found")
+                continue
+            }
+            
+            do {
+                let url = URL(fileURLWithPath: path)
+                let player = try AVAudioPlayer(contentsOf: url)
+                player.prepareToPlay()
+                directionPlayers[direction] = player
+            } catch {
+                print("Could not create \(direction) player: \(error)")
+            }
+        }
+    }
+    
     func playBoopSound() {
         // Get next available player from the pool
         let player = boopPlayers[currentBoopIndex]
@@ -108,5 +131,15 @@ class AudioManager {
     func stopBackgroundMusic() {
         backgroundMusicPlayer?.stop()
         backgroundMusicPlayer?.currentTime = 0
+    }
+    
+    func playDirectionSound(_ direction: GameManager.Direction) {
+        if let player = directionPlayers[direction.audioFile] {
+            if player.isPlaying {
+                player.stop()
+                player.currentTime = 0
+            }
+            player.play()
+        }
     }
 }

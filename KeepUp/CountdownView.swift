@@ -8,24 +8,31 @@ struct CountdownView: View {
     @State private var opacity: Double = 1.0
     
     var body: some View {
-        VStack {
-            if gameManager.currentCountdownText == "Keep Up!" {
-                Text(gameManager.currentCountdownText)
-                    .font(.system(size: 72, design: .rounded))
-                    .fontWeight(.heavy)
-                    .foregroundStyle(KeepUpColors.titleGradient)
-                    .scaleEffect(scale)
-                    .offset(x: offsetX)
-                    .opacity(opacity)
-            } else {
-                Text(gameManager.currentCountdownText)
-                    .font(.system(size: 72, design: .rounded))
-                    .fontWeight(.heavy)
-                    .foregroundColor(.purple)
-                    .scaleEffect(scale)
-                    .offset(x: offsetX)
-                    .opacity(opacity)
-            }
+        VStack(spacing: 20) {
+            Text(gameManager.currentCountdownText)
+                .font(.system(size: 72, design: .rounded))
+                .fontWeight(.heavy)
+                .foregroundStyle(
+                    gameManager.currentCountdownText == "Keep Up!" 
+                    ? KeepUpColors.titleGradient 
+                    : LinearGradient(
+                        gradient: Gradient(colors: [.purple, .purple.opacity(0.8)]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                      )
+                )
+                .scaleEffect(scale)
+                .offset(x: offsetX)
+                .opacity(opacity)
+            
+            Text("🔊 Turn Sound On!")
+                .font(.system(size: 24, design: .rounded))
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .background(Color.black.opacity(0.3))
+                .cornerRadius(15)
         }
         .onChange(of: gameManager.currentCountdownText) { newText in
             // Reset animation states

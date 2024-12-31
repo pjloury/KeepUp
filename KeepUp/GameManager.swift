@@ -59,10 +59,34 @@ class GameManager: ObservableObject {
     }
     
     enum Direction: String, CaseIterable {
-        case left = "LEFT!", right = "RIGHT!", up = "UP!", down = "DOWN!"
+        case left = "LEFT!"
+        case right = "RIGHT!"
+        case up = "UP!"
+        case down = "DOWN!"
+        case singleTap = "Single tap!"
+        case doubleTap = "Double tap!"
+        case zoomIn = "Zoom in!"
+        case zoomOut = "Zoom out!"
+        
+        var audioFile: String {
+            switch self {
+            case .left: return "swipe-left"
+            case .right: return "swipe-right"
+            case .up: return "swipe-up"
+            case .down: return "swipe-down"
+            case .singleTap: return "single-tap"
+            case .doubleTap: return "double-tap"
+            case .zoomIn: return "zoom-in"
+            case .zoomOut: return "zoom-out"
+            }
+        }
     }
 
-
+    private var tapTimer: Timer?
+    private var firstTapTime: Date?
+    private var isWaitingForSecondTap = false
+    private let doubleTapTimeThreshold: TimeInterval = 0.3 // Maximum time between taps
+    
     init() {
         // Setup audio session to allow playing sounds
         do {
@@ -111,11 +135,19 @@ class GameManager: ObservableObject {
         currentDirection = Direction.allCases.randomElement()!
         startReactionTimeTracking()
         
-        // Set a  to end the game if no response in time
+        // Play the direction sound
+        AudioManager.shared.playDirectionSound(currentDirection)
+        
+        // Set a timer to end the game if no response in time
         directionTimer?.invalidate() // Cancel any existing timer
-
-        directionTimer = Timer.scheduledTimer(withTimeInterval: respondInTime, repeats: false) { [weak self] _ in
+        
+        let timeLimit = difficulty.responseTime
+        directionTimer = Timer.scheduledTimer(withTimeInterval: timeLimit, repeats: false) { [weak self] _ in
             guard let self = self else { return }
+            if self.currentDirection == .doubleTap && self.isWaitingForSecondTap {
+                // Don't end game yet if we're waiting for second tap and still have time
+                return
+            }
             self.endGame()
         }
     }
@@ -151,6 +183,12 @@ class GameManager: ObservableObject {
     
     
     func handleSwipe(direction: Direction) {
+        // If we're expecting a tap, this is wrong
+        if currentDirection == .singleTap || currentDirection == .doubleTap {
+            endGame()
+            return
+        }
+        
         // Stop reaction time tracking
         stopReactionTimeTracking()
         
@@ -158,11 +196,7 @@ class GameManager: ObservableObject {
         directionTimer?.invalidate()
         
         if direction == currentDirection {
-            // Play boop sound on correct swipe
-            AudioManager.shared.playBoopSound()
-            
-            score += 1
-            chooseRandomDirection()
+            handleCorrectAction()
         } else {
             endGame()
         }
@@ -202,5 +236,74 @@ class GameManager: ObservableObject {
     
     func resetGame() {
         gameState = .home
+    }
+    
+    func handleTap() {
+        if currentDirection == .singleTap {
+            // For single tap, we can immediately validate
+            handleCorrectAction()
+        } else if currentDirection == .doubleTap {
+            if isWaitingForSecondTap {
+                // This is the second tap
+                if let firstTime = firstTapTime {
+                    // Valid double tap
+                    handleCorrectAction()
+                }
+                resetTapState()
+            } else {
+                // This is the first tap
+                firstTapTime = Date()
+                isWaitingForSecondTap = true
+                
+                // Don't set a separate timer for double tap - we'll use the main direction timer
+            }
+        } else {
+            // Tapped when should have swiped
+            endGame()
+        }
+    }
+    
+    private func resetTapState() {
+        isWaitingForSecondTap = false
+        firstTapTime = nil
+        tapTimer?.invalidate()
+        tapTimer = nil
+    }
+    
+    private func handleCorrectAction() {
+        // Stop reaction time tracking
+        stopReactionTimeTracking()
+        
+        // Invalidate the direction timer
+        directionTimer?.invalidate()
+        
+        // Play boop sound on correct action
+        AudioManager.shared.playBoopSound()
+        
+        score += 1
+        
+        // Add a small delay before playing the next direction to ensure sounds don't overlap
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            self.chooseRandomDirection()
+        }
+    }
+    
+    func handlePinch(scale: CGFloat) {
+        // If we're not expecting a zoom gesture, this is wrong
+        if currentDirection != .zoomIn && currentDirection != .zoomOut {
+            endGame()
+            return
+        }
+        
+        // For zoom in, scale should be > 1, for zoom out, scale should be < 1
+        let isZoomingIn = scale > 1
+        let isZoomingOut = scale < 1
+        
+        if (currentDirection == .zoomIn && isZoomingIn) || 
+           (currentDirection == .zoomOut && isZoomingOut) {
+            handleCorrectAction()
+        } else {
+            endGame()
+        }
     }
 }

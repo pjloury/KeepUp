@@ -4,6 +4,7 @@ struct GameplayView: View {
     @ObservedObject var gameManager: GameManager
     @State private var scale: CGFloat = 0.5 // Start smaller for pop-in effect
     @State private var animationOpacity: Double = 0.0 // Start invisible
+    @GestureState private var pinchScale: CGFloat = 1.0
     
     var body: some View {
         VStack {
@@ -12,19 +13,36 @@ struct GameplayView: View {
                 .foregroundColor(KeepUpColors.darkBlue)
                 .padding(.top)
             
-            Text("\(gameManager.currentDirection.rawValue)")
-                .font(.system(size: 70, design: .rounded))
-                .fontWeight(.heavy)
-                .foregroundStyle(KeepUpColors.darkYellow)
-                .scaleEffect(scale)
-                .opacity(animationOpacity)
-                .onAppear {
-                    // Trigger initial animation
-                    animateDirection()
-                }
-                .onChange(of: gameManager.currentDirection) { _ in
-                    animateDirection()
-                }
+            if gameManager.difficulty == .easy {
+                Text("\(gameManager.currentDirection.rawValue)")
+                    .font(.system(size: 70, design: .rounded))
+                    .fontWeight(.heavy)
+                    .foregroundStyle(KeepUpColors.darkYellow)
+                    .scaleEffect(scale)
+                    .opacity(animationOpacity)
+                    .onAppear {
+                        // Trigger initial animation
+                        animateDirection()
+                    }
+                    .onChange(of: gameManager.currentDirection) { _ in
+                        animateDirection()
+                    }
+            } else {
+                // For medium and hard difficulties, show "Keep Up!" instead of direction
+                Text("Keep Up!")
+                    .font(.system(size: 70, design: .rounded))
+                    .fontWeight(.heavy)
+                    .foregroundStyle(KeepUpColors.darkYellow)
+                    .scaleEffect(scale)
+                    .opacity(animationOpacity)
+                    .onAppear {
+                        // Trigger initial animation
+                        animateDirection()
+                    }
+                    .onChange(of: gameManager.currentDirection) { _ in
+                        animateDirection()
+                    }
+            }
             
             Text("Score: \(gameManager.score)")
                 .font(.gameFont(size: 24))
@@ -34,25 +52,37 @@ struct GameplayView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(KeepUpColors.backgroundGradient)
         .gesture(
-            DragGesture()
-                .onEnded { value in
-                    let direction: GameManager.Direction
-                    
-                    if value.translation.width < -50 {
-                        direction = .left
-                    } else if value.translation.width > 50 {
-                        direction = .right
-                    } else if value.translation.height < -50 {
-                        direction = .up
-                    } else if value.translation.height > 50 {
-                        direction = .down
-                    } else {
-                        return
+            SimultaneousGesture(
+                DragGesture()
+                    .onEnded { value in
+                        let direction: GameManager.Direction
+                        
+                        if value.translation.width < -50 {
+                            direction = .left
+                        } else if value.translation.width > 50 {
+                            direction = .right
+                        } else if value.translation.height < -50 {
+                            direction = .up
+                        } else if value.translation.height > 50 {
+                            direction = .down
+                        } else {
+                            return
+                        }
+                        
+                        gameManager.handleSwipe(direction: direction)
+                    },
+                MagnificationGesture()
+                    .updating($pinchScale) { value, state, _ in
+                        state = value
                     }
-                    
-                    gameManager.handleSwipe(direction: direction)
-                }
+                    .onEnded { value in
+                        gameManager.handlePinch(scale: value)
+                    }
+            )
         )
+        .onTapGesture {
+            gameManager.handleTap()
+        }
     }
     
     private func animateDirection() {
